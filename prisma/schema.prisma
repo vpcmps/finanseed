@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Wallet    Wallet[]
+}
+
+model Wallet {
+  id            Int             @id @default(autoincrement())
+  name          String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  userId        Int
+  User          User            @relation(fields: [userId], references: [id])
+  Expense       Expense[]
+  CreditCard    CreditCard[]
+  PaymentMethod PaymentMethod[]
+}
+
+model CreditCard {
+  id            Int             @id @default(autoincrement())
+  name          String
+  limit         Float
+  dueDate       Int
+  closingDate   Int
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  PaymentMethod PaymentMethod[]
+  walletId      Int
+  Wallet        Wallet          @relation(fields: [walletId], references: [id])
+}
+
+model PaymentMethod {
+  id           Int         @id @default(autoincrement())
+  name         String
+  creditCardId Int?
+  creditCard   CreditCard? @relation(fields: [creditCardId], references: [id])
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  Expense      Expense[]
+  walletId     Int
+  Wallet       Wallet      @relation(fields: [walletId], references: [id])
+}
+
+model Expense {
+  id               Int           @id @default(autoincrement())
+  name             String
+  value            Float
+  date             DateTime
+  category         String
+  paymentMethodId  Int
+  paymentMethod    PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  Wallet           Wallet        @relation(fields: [walletId], references: [id])
+  walletId         Int
+  installments     Int
+  installmentIndex Int
+  isPaid           Boolean
+  isRecurrent      Boolean
+}
